@@ -30,7 +30,7 @@ void solverObject::setSystem() {
 }
 
 void solverObject::assembleSystem() {
-    if(method == 0) {
+
         for (int i = 0; i < numberOfElements; ++i) {
             double temp{calculateK(pointsArray[i*3], pointsArray[i*3+1]) / elementLength};
             globalMatrix(i, i) += temp;
@@ -40,6 +40,7 @@ void solverObject::assembleSystem() {
             rightSide(i) = calculateF(pointsArray[i*3], pointsArray[i*3+1]) * 2.0 * elementLength;
         }
         printSystem();
+    if(method == 0) {
         for (auto &borderCondition : borderConditions) {
             globalMatrix(borderCondition.n, borderCondition.n) +=
                     (borderCondition.alpha / borderCondition.betta) * calculateK(borderCondition.n*3, borderCondition.n*3);
@@ -47,7 +48,15 @@ void solverObject::assembleSystem() {
         }
         printSystem();
     }else{
-
+        int i {0};
+        for (auto &borderCondition : borderConditions) {
+            std::cout << numberOfElements + 1 +  i << "   " << borderCondition.n << std::endl;
+            globalMatrix(numberOfElements + 1 +  i,borderCondition.n) += 1.0;
+            globalMatrix( borderCondition.n,numberOfElements  + i + 1) += 1.0;
+            rightSide(numberOfElements  + i + 1) += (borderCondition.gamma / borderCondition.betta)* calculateK(borderCondition.n*3, borderCondition.n*3);
+            ++i;
+        }
+        printSystem();
     }
 }
 
@@ -57,6 +66,7 @@ void solverObject::printSystem(){
         std::cout << rightSide << std::endl;
         std::cout <<  std::endl;
 }
+
 double solverObject::calculateK(const double &x, const double &y) {
     return 3.0;
 }
@@ -103,8 +113,11 @@ void solverObject::solveSystem(){
 
 void solverObject::visualizeSolution(){
     if(method == 0){
-        system("../visualizePenaltySolution");}
+        system("../visualizePenaltySolution");
+        system("open ../PenaltySolution.eps");
+    }
     else {
         system("../visualizeLagrangeSolution");
+        system("open ../LagrangeSolution.eps");
     }
 }
