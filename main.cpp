@@ -1,10 +1,10 @@
 #include <iostream>
 #include "meshGenerator.h"
+#include "solverObject.h"
 int main() {
-    std::string fileName = "/Users/kola/Desktop/РПК/MeshGenerator/inputFile.txt";
-    auto *obj = new meshGenerator{fileName};
-    obj -> readFile();
-    obj -> lineMesh();
-    obj -> fileOutput();
+    auto *obj  = new solverObject();
+    obj->setSystem();
+    obj->assembleSystem();
+    obj->solveSystem();
     return 0;
 }

@@ -61,9 +61,9 @@ void meshGenerator::lineMesh() {
          }
 
     /*Тестовый вывод на экран*/
-    std::cout << std::endl;
+    /*std::cout << std::endl;
     std::cout << "GuideX = " << guideX << ", GuideY = " << guideY << ", GuideZ = " << guideZ << std::endl;
-    std::cout << std::endl;
+    std::cout << std::endl;*/
     for (int k = 0; k < meshPointsArray.size(); k+=3) {
         std::cout << meshPointsArray[k]  << "  "  << meshPointsArray[k+1]<< "  " << meshPointsArray[k+2] <<std::endl;
     }
@@ -73,9 +73,9 @@ void meshGenerator::fileOutput() {
     std::ofstream outputFile("../MeshInfo.txt");
 
     if(numberOfDimensions == 2){
-
+        auto length = meshPointsArray.size();
         outputFile << numberOfElements1 << "  " << \
-            numberOfElements1 * type << "  " << 2 << "\n"; /*Число элементов - число узлов - количество контуров*/
+            length / 3<< "  " << 2 << "\n"; /*Число элементов - число узлов - количество контуров*/
         outputFile << 1 << "  " << 1 + type << "  ";
         if (type == 1) {
             outputFile << 1 << " " << 3 << "\n";
@@ -93,20 +93,22 @@ void meshGenerator::fileOutput() {
                 else{
                     outputFile << i << " " << i + 3 << " " << i+2 <<"\n"; i+=2;
                 }
-
         }
         outputFile << 2 << "  " << 1 + type << "  ";
         if (type == 1) {
             outputFile << numberOfElements1*type + 1<< " " << 2 << "\n";
         }
         else{
-            outputFile << numberOfElements1*type -1<< " " << numberOfElements1*type << " " << 2 <<"\n";
+            outputFile << numberOfElements1*type -1<< " " << numberOfElements1*type +1 << " " << 2 <<"\n";
         }
 
         int k {0}, l{1};
-        auto length = meshPointsArray.size();
+
         for (int j = 1; j <= length/3; ++j) {
-            if(j == 2){}
+            if(j == 2){
+                if(type==1){l++;}
+                else{}
+            }
 
             else{
                 if(type == 1) {
@@ -122,6 +124,9 @@ void meshGenerator::fileOutput() {
                     if(l % 2 == 0)
                         l--;
                     else l+=3;
+                   if(l > length/3){
+                       l -= 1;
+                   }
                 }
             }
         }
@@ -132,3 +137,5 @@ void meshGenerator::fileOutput() {
     }
     outputFile.close();
 }
+
+

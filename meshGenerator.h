@@ -14,15 +14,28 @@ public:
     void readFile();
     void lineMesh();
     void fileOutput();
+    inline unsigned int getSizeOfMeshPointsArray();
+    inline std::vector<double> getMeshPointsArray();
+    inline int getNumberOfElements();
+    std::vector<double> meshPointsArray;
 private:
     std::string fileName;
     uint64_t numberOfDimensions{0};
-    uint64_t numberOfElements1{0};
+    int numberOfElements1{0};
     uint64_t numberOfElements2{0};
     uint64_t type{0};
     std::vector<double> pointsArray;
-    std::vector<double> meshPointsArray;
 };
 
+std::vector<double> meshGenerator::getMeshPointsArray() {
+    return meshPointsArray;
+}
 
+int meshGenerator::getNumberOfElements() {
+    return numberOfElements1;
+}
+
+unsigned int meshGenerator::getSizeOfMeshPointsArray() {
+    return meshPointsArray.size();
+}
 #endif //MESHGENERATOR_MESHGENERATOR_H
