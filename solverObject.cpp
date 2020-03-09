@@ -1,7 +1,7 @@
 #include "solverObject.h"
 
 void solverObject::setSystem() {
-    std::string fileName = "/Users/kola/Desktop/РПК/MeshGenerator/inputFile.txt";
+    std::string fileName = "../inputFile.txt";
     auto *obj = new meshGenerator{fileName};
     obj -> readFile();
     obj -> lineMesh();
@@ -16,6 +16,7 @@ void solverObject::setSystem() {
     elementLength = length / numberOfElements;
     std::cout <<"Number of elements: " << numberOfElements << std::endl;
     std::cout <<"Length: " << length << std::endl;
+    std::cout <<"Element length: " << elementLength << std::endl;
     setBorderConditions();
     if(method == 0) {
         globalMatrix = MatrixXd::Zero(numberOfElements + 1, numberOfElements + 1);
@@ -37,9 +38,34 @@ void solverObject::assembleSystem() {
             globalMatrix(i, i + 1) -= temp;
             globalMatrix(i + 1, i) -= temp;
             globalMatrix(i + 1, i + 1) += temp;
-            rightSide(i) = calculateF(pointsArray[i*3], pointsArray[i*3+1]) * 2.0 * elementLength;
+            rightSide(i) += calculateF(pointsArray[i*3], pointsArray[i*3+1]) *  elementLength /2.0;
+            rightSide(i+1) += calculateF(pointsArray[i*3], pointsArray[i*3+1]) * elementLength /2.0;
         }
         printSystem();
+    int i {0};
+    for (auto &borderCondition : borderConditions) {
+        double x = pointsArray[borderCondition.n*3],
+                y = pointsArray[borderCondition.n*3+1];
+        if(borderCondition.betta < 10e-10){
+            if(method == 0) {
+                    globalMatrix(borderCondition.n, borderCondition.n) +=
+                            (borderCondition.alpha / borderCondition.betta) * calculateK(x,y);
+                    rightSide(borderCondition.n) += (borderCondition.gamma / borderCondition.betta) * calculateK(x,y);
+            }else{
+                    std::cout << numberOfElements + 1 +  i << "   " << borderCondition.n << std::endl;
+                    globalMatrix(numberOfElements + 1 +  i,borderCondition.n) += 1.0;
+                    globalMatrix( borderCondition.n,numberOfElements  + i + 1) += 1.0;
+                    rightSide(numberOfElements  + i + 1) += borderCondition.gamma / borderCondition.alpha;
+                    ++i;
+                  }
+        }
+        else{
+            globalMatrix(borderCondition.n, borderCondition.n) +=
+                    (borderCondition.alpha / borderCondition.betta) * calculateK(x,y);
+            rightSide(borderCondition.n) += (borderCondition.gamma / borderCondition.betta) * calculateK(x,y);
+        }
+    }                printSystem();
+        /*
     if(method == 0) {
         for (auto &borderCondition : borderConditions) {
             globalMatrix(borderCondition.n, borderCondition.n) +=
@@ -53,11 +79,11 @@ void solverObject::assembleSystem() {
             std::cout << numberOfElements + 1 +  i << "   " << borderCondition.n << std::endl;
             globalMatrix(numberOfElements + 1 +  i,borderCondition.n) += 1.0;
             globalMatrix( borderCondition.n,numberOfElements  + i + 1) += 1.0;
-            rightSide(numberOfElements  + i + 1) += (borderCondition.gamma / borderCondition.betta)* calculateK(borderCondition.n*3, borderCondition.n*3);
+            rightSide(numberOfElements  + i + 1) += borderCondition.gamma / borderCondition.alpha;
             ++i;
         }
         printSystem();
-    }
+    }*/
 }
 
 void solverObject::printSystem(){
@@ -68,15 +94,15 @@ void solverObject::printSystem(){
 }
 
 double solverObject::calculateK(const double &x, const double &y) {
-    return 3.0;
+    return 1.0;//1+x;
 }
 
 double solverObject::calculateF(const double &x, const double &y) {
-    return 3.0;
+    return 0.0;//2*x + y;
 }
 
 void solverObject::setBorderConditions() {
-    std::ifstream inputFile("/Users/kola/Desktop/РПК/MeshGenerator/borderConditions.txt",std::ios_base::in);
+    std::ifstream inputFile("../borderConditions.txt",std::ios_base::in);
     inputFile >> method;
     while(!inputFile.eof()) {
         borderCondition bc{};
@@ -106,17 +132,19 @@ void solverObject::fileOutputSolution(){
 }
 
 void solverObject::solveSystem(){
-    solution = globalMatrix.ldlt().solve(rightSide);
+    solution = globalMatrix.completeOrthogonalDecomposition().solve(rightSide);
     std::cout << solution << std::endl;
     fileOutputSolution();
 }
 
 void solverObject::visualizeSolution(){
     if(method == 0){
+        system("rm ../PenaltySolution.eps");
         system("../visualizePenaltySolution");
         system("open ../PenaltySolution.eps");
     }
     else {
+        system("rm ../LagrangeSolution.eps");
         system("../visualizeLagrangeSolution");
         system("open ../LagrangeSolution.eps");
     }

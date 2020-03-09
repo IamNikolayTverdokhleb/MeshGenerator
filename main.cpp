@@ -6,5 +6,10 @@ int main() {
     obj->setSystem();
     obj->assembleSystem();
     obj->solveSystem();
+    obj->visualizeSolution();
+    /*auto *obj  = new meshGenerator("../inputFile.txt");
+    obj -> readFile();
+    obj -> fileOutput();
+    obj -> twoDimensionalMesh();*/
     return 0;
 }
